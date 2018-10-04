@@ -1,5 +1,6 @@
 package dev.atomic.applogin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
  * Created by gjtinoco on 03/10/2018.
@@ -23,6 +25,7 @@ public class RegisterActivity  extends AppCompatActivity{
     private Button              mBtnRegister;
     private TextInputEditText   mEtEmail, mEtPassword;
     private FirebaseAuth        mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mFirebaseAuthStateListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,7 +44,7 @@ public class RegisterActivity  extends AppCompatActivity{
         mBtnRegister.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email = mEtEmail.getText().toString().trim();
+                String email    = mEtEmail.getText().toString().trim();
                 String password = mEtPassword.getText().toString().trim();
 
                 if ( TextUtils.isEmpty( email )) {
@@ -52,6 +55,18 @@ public class RegisterActivity  extends AppCompatActivity{
                     Toast.makeText( RegisterActivity.this, "Ingresa un Password.", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                mFirebaseAuthStateListener = new FirebaseAuth.AuthStateListener() {
+                    @Override
+                    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                        if ( firebaseUser != null) {
+                            Toast.makeText( getApplicationContext(), "Exito, usuario creado", Toast.LENGTH_SHORT ).show();
+                            Intent intent   = new Intent( RegisterActivity.this, MainActivity.class );
+                            intent.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK );
+                            startActivity( intent );
+                        }
+                    }
+                };
                 mFirebaseAuth.createUserWithEmailAndPassword( email, password )
                         .addOnFailureListener( RegisterActivity.this, new OnFailureListener() {
                             @Override
@@ -66,6 +81,18 @@ public class RegisterActivity  extends AppCompatActivity{
 
         mEtEmail        = findViewById( R.id.activityLoginEmail );
         mEtPassword     = findViewById( R.id.activityLoginPassword );
-        getActionBar().setTitle( "Actividad de Registro" );
+        getSupportActionBar()
+                .setTitle( "Actividad de Registro" );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 }
